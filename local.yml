@@ -1,0 +1,44 @@
+- hosts: localhost
+  connection: local
+  become: true
+
+  pre_tasks:
+    - name: Update apt repositories
+      apt:
+        update_cache: yes
+      changed_when: False
+
+  tasks:
+    - name: Create wheel group
+      group:
+        name: "wheel"
+        state: "present"
+        system: "yes"
+
+    - name: Set up wheel group in sudoers
+      copy:
+        content: "%wheel ALL=(ALL) NOPASSWD: ALL"
+        dest: "/etc/sudoers.d/wheel"
+        owner: "root"
+        group: "root"
+        mode: "0440"
+
+    - name: Create captain User
+      user:
+        name: "captain"
+        create_home: "yes"
+        group: "wheel"
+        password: "!"
+
+    - name: Set up authorized_keys for captain account
+      authorized_key:
+        user: "captain"
+        key: "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAtjQW40+xSLO/JOTCnTtnBpEvIMIQJNR6lLyop9ytT7K1LSixbTf1fzBT+elKvyFcF4HWGbypBYqnVh6YSZGgu9wO+vBzFNWzXLXEhgCeRad8Mluv+i4pMta5QU4nRQSQ4iaxHmGdsQCcOLRqU+y0H6Y3nK+t6hkNnkQZiLR42fCjM/Ni8T25/qtlCizNsvnijN6ERuHhmxGqK1/8j4xPF1Hu5P+ZV7Fm41ZEjF2JRI59QzSs3ZPoaUKM1173zuHPHmmcv26Lbe9rPyURmhxT62UIupvba56u2o1DFfMEwZYTO+DRdn/BUOigh36cxNdSoyRXYEAUDHuwvNIcilaLuw== mchristy"
+
+    - name: Install some packages
+      apt:
+        name:
+          - net-tools
+          - htop
+          - tmux
+          - vim
